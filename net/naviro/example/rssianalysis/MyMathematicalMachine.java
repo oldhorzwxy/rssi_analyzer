@@ -3,23 +3,20 @@ package net.naviro.example.rssianalysis;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.junit.Test;
-import org.junit.Assert;
-
 import net.naviro.example.rssianalysis.RSSIAnalysis.RSSIValue;
 
 public class MyMathematicalMachine {
 	
 	/**
 	 * Get a list of RSSI measures. Select some of them by Gauss Filter formula.
-	 * @param list
-	 * @return
+	 * @param list the list passed into the math machine to get Gauss filtered
+	 * @return a list with Gauss filtered values
 	 */
 	static ArrayList< RSSIValue > doGaussFiltering( ArrayList< RSSIValue > list ){
 		// calculate average and standard deviation
 		ArrayList< Integer > intList = new ArrayList< Integer >();
 		for( int i = 0; i < list.size(); i++ ){
-			intList.add( new Integer( list.get( i ).getValue() ) );
+			intList.add( list.get( i ).getValue() );
 		}
 		double average = getArithmeticAverage( intList );
 		double standardDeviation = getStandardDeviation( intList );
@@ -40,6 +37,7 @@ public class MyMathematicalMachine {
 		for( int i = 0; i < list.size(); i++ ){
 			int item = list.get( i ).getValue();
 			// if this item lies in certain area, it's valid in result list
+            // the area is around average in ONE standard deviation
 			if( item <= average + standardDeviation && item >= average - standardDeviation ){
 				result.add( list.get( i ) );
 			}
@@ -53,7 +51,7 @@ public class MyMathematicalMachine {
 		// get int out of list
 		Iterator< Integer > iterator = list.iterator();
 		while( iterator.hasNext() ){
-			int item = iterator.next().intValue();
+			int item = iterator.next();
 			result += item;
 		}
 		// calculate average
@@ -66,7 +64,7 @@ public class MyMathematicalMachine {
 		// get double out of list
 		Iterator< Double > iterator = list.iterator();
 		while( iterator.hasNext() ){
-			double item = iterator.next().doubleValue();
+			double item = iterator.next();
 			result += item;
 		}
 		// calculate average
@@ -76,8 +74,6 @@ public class MyMathematicalMachine {
 	
 	/**
 	 * Warning: if list.size() == 0, it'll meet DividedByZero Exception.
-	 * @param list
-	 * @return
 	 */
 	private static double getStandardDeviation( ArrayList< Integer > list ){
 		// get average of the values
@@ -97,8 +93,7 @@ public class MyMathematicalMachine {
 	
 	/**
 	 * Calculate the geometrical average value of a list of RSSI values.
-	 * @param list
-	 * @return
+     * Its current implementation is dealing only with integers, under presumption of RSSI value is integer.
 	 */
 	static double getGeometricalAverage( ArrayList< RSSIValue > list ){
 		ArrayList< Integer > intlist = new ArrayList< Integer >();
@@ -110,8 +105,6 @@ public class MyMathematicalMachine {
 	
 	/**
 	 * Calculate the geometrical average value of a list of integer values.
-	 * @param list
-	 * @return
 	 */
 	private static double getIntegerGeometricalAverage( ArrayList< Integer > list ){
 		double result = 1.0;
@@ -124,8 +117,6 @@ public class MyMathematicalMachine {
 	
 	/**
 	 * Calculator the factors in linear regression function.
-	 * @param list
-	 * @return
 	 */
 	static LRFPair getLRFPair( ArrayList< LRVPair > list ){
 		// calculate average of x
@@ -239,90 +230,5 @@ public class MyMathematicalMachine {
 		public String toString(){
 			return "Pair: a = " + this.a + " b = " + this.b; 
 		}
-	}
-	
-	/* Test case */
-	@Test
-	public void testArithmeticAverage() {
-		// case 1
-		ArrayList< Integer > inputList1 = new ArrayList< Integer >();
-		inputList1.add( new Integer( 0 ) );
-		inputList1.add( new Integer( 1 ) );
-		inputList1.add( new Integer( 2 ) );
-		inputList1.add( new Integer( 3 ) );
-		inputList1.add( new Integer( 4 ) );
-		inputList1.add( new Integer( 5 ) );
-		inputList1.add( new Integer( 6 ) );
-		inputList1.add( new Integer( 7 ) );
-		Assert.assertTrue( getArithmeticAverage( inputList1 ) == 3.5 );
-		
-		// case 2
-		ArrayList< Integer > inputList2 = new ArrayList< Integer >();
-		inputList2.add( new Integer( 5 ) );
-		Assert.assertTrue( getArithmeticAverage( inputList2 ) == 5.0 );
-		
-		// case 3
-		ArrayList< Integer > inputList3 = new ArrayList< Integer >();
-		inputList3.add( new Integer( 5 ) );
-		inputList3.add( new Integer( 1 ) );
-		inputList3.add( new Integer( 2 ) );
-		inputList3.add( new Integer( 100 ) );
-		inputList3.add( new Integer( 5235 ) );
-		// though it's dangerous to use '==' to compare double values
-		Assert.assertTrue( getArithmeticAverage( inputList3 ) == 1068.6 );
-	}
-	
-	@Test
-	public void testStandardDeviation() {
-		ArrayList< Integer > inputList = new ArrayList< Integer >();
-		inputList.add( new Integer( 5 ) );
-		inputList.add( new Integer( 9 ) );
-		inputList.add( new Integer( 1 ) );
-		inputList.add( new Integer( 6 ) );
-		Assert.assertTrue( Math.abs( getStandardDeviation( inputList ) - Math.sqrt( 10.916667 ) ) < 0.001 );
-	}
-	
-	@Test
-	public void testIntegerGeometricalAverage(){
-		ArrayList< Integer > inputList = new ArrayList< Integer >();
-		inputList.add( new Integer( 5 ) );
-		inputList.add( new Integer( 9 ) );
-		inputList.add( new Integer( 1 ) );
-		inputList.add( new Integer( 6 ) );
-		Assert.assertTrue( Math.abs( getIntegerGeometricalAverage( inputList ) - Math.pow( 270.0, 0.25 ) ) < 0.001 );
-	}
-	
-	@Test
-	public void testLinearRegressionCalculation(){
-		ArrayList< LRVPair > inputList = new ArrayList< LRVPair >();
-		inputList.add( new LRVPair( 7.5, 6.7 ) );
-		inputList.add( new LRVPair( 7.8, 7.0 ) );
-		inputList.add( new LRVPair( 8.1, 7.4 ) );
-		inputList.add( new LRVPair( 8.6, 7.7 ) );
-		inputList.add( new LRVPair( 8.6, 7.6 ) );
-		Assert.assertTrue( "Excepted: " + new LRFPair( 0.411, 0.846 ) + ", Actually: " + getLRFPair( inputList ),
-				getLRFPair( inputList ).equals( new LRFPair( 0.411, 0.846 ) ) );
-	}
-	
-	@Test
-	public void overallTest(){
-		ArrayList< RSSIValue > gaussList = new ArrayList< RSSIValue >();
-		gaussList.add( new RSSIValue( 72 ) );
-		gaussList.add( new RSSIValue( 69 ) );
-		gaussList.add( new RSSIValue( 78 ) );
-		gaussList.add( new RSSIValue( 73 ) );
-		gaussList.add( new RSSIValue( 74 ) );
-		gaussList.add( new RSSIValue( 72 ) );
-		gaussList.add( new RSSIValue( 76 ) );
-		gaussList.add( new RSSIValue( 69 ) );
-		gaussList.add( new RSSIValue( 70 ) );
-		gaussList.add( new RSSIValue( 69 ) );
-		gaussList.add( new RSSIValue( 68 ) );
-		gaussList.add( new RSSIValue( 65 ) );
-		gaussList.add( new RSSIValue( 63 ) );
-		gaussList.add( new RSSIValue( 72 ) );
-		gaussList.add( new RSSIValue( 68 ) );
-		ArrayList< RSSIValue > gaussResult = doGaussFiltering( gaussList );
-		Assert.assertTrue( "Excepted: 11, Actually: " + gaussResult.size(), gaussResult.size() == 11 );
 	}
 }
